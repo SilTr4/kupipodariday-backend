@@ -62,9 +62,15 @@ export class WishesService {
     return await this.wishRepository.findOneOrFail(query);
   }
 
-  async update(id: number, updateWishDto: UpdateWishDto) {
+  async update(id: number, updateWishDto: UpdateWishDto, userId: number) {
     const { price } = updateWishDto;
-    const wish = await this.wishRepository.findOneBy({ id: id });
+    const wish = await this.wishRepository.findOne({
+      where: { id: id },
+      relations: ['owner'],
+    });
+    if (wish.owner.id !== userId) {
+      throw new ForbiddenException('Вы не можете редактировать чужие  подарки');
+    }
     if (wish.raised > 0 && price) {
       throw new ConflictException('Сбор средств уже идет');
     }

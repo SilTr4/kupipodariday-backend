@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
@@ -21,7 +25,14 @@ export class OffersService {
     const { amount, itemId } = createOfferDto;
 
     const owner = await this.userRepository.findOneBy({ id: userId });
-    const wish = await this.wishRepository.findOneBy({ id: itemId });
+    const wish = await this.wishRepository.findOne({
+      where: { id: itemId },
+      relations: ['owner', 'offers'],
+    });
+
+    if (userId === wish.owner.id) {
+      throw new ForbiddenException('Вы не можете скидываться на свой подарок');
+    }
 
     const raised = wish.raised + amount;
     if (raised > wish.price) {

@@ -3,17 +3,16 @@ import { User } from 'src/users/entities/user.entity';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import {
   Entity,
-  PrimaryColumn,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  W,
   Column,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 export class Offer {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @CreateDateColumn()

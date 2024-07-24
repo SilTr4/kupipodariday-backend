@@ -3,7 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { QueryFailedError, Repository } from 'typeorm';
+import { FindOneOptions, QueryFailedError, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -21,6 +21,7 @@ export class UsersService {
         ...createUserDto,
         password: passwordHash,
       });
+      delete user.password;
       return user;
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -32,19 +33,48 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findOne(id: number) {
+    return await this.userRepository.findOneBy({ id: id });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async updateOne(id: number, updateUserDto: UpdateUserDto) {
+    for (const key in updateUserDto) {
+      if (key === 'password') {
+        const passwordHash = await bcrypt.hash(updateUserDto[key], 10);
+        updateUserDto[key] = passwordHash;
+      }
+    }
+    try {
+      await this.userRepository.update(id, updateUserDto);
+      const user = await this.userRepository.findOneBy({ id: id });
+      return user;
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        const err = error.driverError;
+        if (err.code === '23505') {
+          throw new ConflictException('username already exist');
+        }
+      }
+    }
   }
 
-  updateOne(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async findByUsername(username: string) {
+    const user = await this.userRepository.findOne({
+      select: { password: true },
+      where: { username: username },
+    });
+    return user;
   }
 
-  removeOne(id: number) {
-    return `This action removes a #${id} user`;
+  async getUserWishes(username: string) {
+    const userWishes = await this.userRepository.find({
+      where: { username: username },
+      relations: { wishes: true, offers: true },
+    });
+    return userWishes;
+  }
+
+  async findUser(query: FindOneOptions<User>) {
+    return await this.userRepository.find(query);
   }
 }

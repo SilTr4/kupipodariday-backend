@@ -1,21 +1,20 @@
-import { Length } from 'class-validator';
+import { IsOptional, Length } from 'class-validator';
 import { User } from 'src/users/entities/user.entity';
 import { Wish } from 'src/wishes/entities/wish.entity';
 import {
   Entity,
-  PrimaryColumn,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
   Column,
   ManyToMany,
-  JoinColumn,
   JoinTable,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 export class Wishlist {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @CreateDateColumn()
@@ -33,9 +32,13 @@ export class Wishlist {
 
   @Column()
   @Length(1, 1500)
+  @IsOptional()
   description: string;
 
   @ManyToMany(() => Wish, (wish) => wish.wishlist)
   @JoinTable()
   items: Wish[];
+
+  @ManyToOne(() => User, (user) => user.wishes)
+  owner: User;
 }

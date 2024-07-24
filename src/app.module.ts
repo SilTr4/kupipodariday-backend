@@ -9,6 +9,8 @@ import { User } from './users/entities/user.entity';
 import { Wish } from './wishes/entities/wish.entity';
 import { Wishlist } from './wishlist/entities/wishlist.entity';
 import { Offer } from './offers/entities/offer.entity';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -22,10 +24,12 @@ import { Offer } from './offers/entities/offer.entity';
       entities: [User, Wish, Wishlist, Offer],
       synchronize: true,
     }),
+    ConfigModule.forRoot({ isGlobal: true }),
     UsersModule,
     WishesModule,
     WishlistModule,
     OffersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [],

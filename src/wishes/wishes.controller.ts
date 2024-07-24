@@ -1,34 +1,63 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { WishesService } from './wishes.service';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
+import { JwtGuard } from 'src/guards/jwt.guard';
 
 @Controller('wishes')
 export class WishesController {
   constructor(private readonly wishesService: WishesService) {}
 
   @Post()
-  create(@Body() createWishDto: CreateWishDto) {
-    return this.wishesService.create(createWishDto);
+  @UseGuards(JwtGuard)
+  create(@Body() createWishDto: CreateWishDto, @Req() req) {
+    return this.wishesService.create(createWishDto, req.user.id);
   }
 
-  @Get()
-  findAll() {
-    return this.wishesService.findAll();
+  @Get('last')
+  getLastWishes() {
+    return this.wishesService.findLastWish();
+  }
+
+  @Get('top')
+  getTopWishes() {
+    return this.wishesService.findTopWish();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.wishesService.findOne(+id);
+  @UseGuards(JwtGuard)
+  getOneWish(@Param('id') id: number) {
+    return this.wishesService.findOneWish({
+      where: { id: id },
+      relations: { owner: true, offers: true },
+    });
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWishDto: UpdateWishDto) {
-    return this.wishesService.update(+id, updateWishDto);
+  @UseGuards(JwtGuard)
+  update(@Param('id') id: number, @Body() updateWishDto: UpdateWishDto) {
+    return this.wishesService.update(id, updateWishDto);
+  }
+
+  @Post(':id/copy')
+  @UseGuards(JwtGuard)
+  copy(@Param('id') id: number, @Req() req) {
+    return this.wishesService.copy(id, req.user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.wishesService.remove(+id);
+  @UseGuards(JwtGuard)
+  remove(@Param('id') id: number, @Req() req) {
+    return this.wishesService.remove(id, req.user.id);
   }
 }

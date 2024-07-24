@@ -1,21 +1,21 @@
-import { Contains, IsNumber, IsUrl, Length } from 'class-validator';
+import { IsNumber, IsUrl, Length } from 'class-validator';
 import { Offer } from 'src/offers/entities/offer.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Wishlist } from 'src/wishlist/entities/wishlist.entity';
 import {
   Entity,
-  PrimaryColumn,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
   Column,
   OneToMany,
   ManyToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 export class Wish {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @CreateDateColumn()
@@ -40,7 +40,7 @@ export class Wish {
   @IsNumber({ maxDecimalPlaces: 2 })
   price: number;
 
-  @Column('decimal')
+  @Column('decimal', { default: 0 })
   @IsNumber({ maxDecimalPlaces: 2 })
   raised: number;
 
@@ -54,7 +54,7 @@ export class Wish {
   @OneToMany(() => Offer, (offer) => offer.item)
   offers: Offer[];
 
-  @Column()
+  @Column({ default: 0 })
   copied: number;
 
   @ManyToMany(() => Wishlist, (wishlist) => wishlist.items)
